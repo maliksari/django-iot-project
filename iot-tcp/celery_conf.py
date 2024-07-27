@@ -1,20 +1,21 @@
-import task
-import os
-from celery import Celery
 
+import os
+
+from celery import Celery
 from dotenv import load_dotenv
+
+from task import save_location_to_db, logger
 
 load_dotenv()
 
-celery_app = Celery('tcp_server_app')
 
 CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')
 CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND')
 
+celery_app = Celery('tasks')
+
+
 celery_app.conf.update(
-    # broker_url='amqp://guest:guest@localhost:5672//',  # RabbitMQ bağlantı URL'si
-    # Redis bağlantı URL'si
-    # result_backend='redis://redis:6379/0',
     broker_url=CELERY_BROKER_URL,
     result_backend=CELERY_RESULT_BACKEND,
     accept_content=['json'],
@@ -29,4 +30,11 @@ celery_app.conf.update(
     broker_connection_retry_on_startup=True,
 )
 
-celery_app.autodiscover_tasks(['task'])
+
+@celery_app.task(bind=True, max_retries=3)
+def locations_task(self, device_id, latitude, longitude):
+    try:
+        save_location_to_db(device_id, latitude, longitude)
+    except Exception as e:
+        logger.error(f"Error saving location to database: {e}")
+        raise self.retry(exc=e, countdown=60, max_retries=3)

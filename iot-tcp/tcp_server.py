@@ -2,7 +2,8 @@
 import socket
 import time
 
-from task import save_location_to_db
+from celery_conf import locations_task
+
 
 def start_server():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -29,7 +30,7 @@ def start_server():
                     latitude = float(latitude)
                     longitude = float(longitude)
                     # kuyruğa ekle
-                    save_location_to_db.delay(device_id, latitude, longitude)
+                    locations_task.delay(device_id, latitude, longitude)
                     print("Data added to the queue")
                     print("Data :", decoded_data)
                 except ValueError as e:
@@ -38,8 +39,9 @@ def start_server():
             client_socket.close()
         except (socket.timeout, socket.error) as e:
             print(f"Socket error occurred: {e}")
-           
+
             time.sleep(5)
+
 
 if __name__ == "__main__":
     start_server()
