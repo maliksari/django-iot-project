@@ -1,0 +1,37 @@
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Python environment
+.env/
+env/
+venv/
+
+# Python build artifacts
+build/
+dist/
+*.egg-info/
+
+# Python test results
+.pytest_cache/
+.coverage
+
+# Python IDE files
+.idea/
+.vscode/
+
+# Python logs
+*.log
+
+# Python temporary files
+*.tmp
+*.bak
+*.swp
+
+# Python notebook checkpoints
+.ipynb_checkpoints/
+
+# Python data files (if any)
+data/

@@ -41,9 +41,10 @@ class BaseModel(models.Model):
 class Device(BaseModel):
     name = models.CharField(max_length=200, unique=True,
                             blank=False, null=False, db_index=True)
+
     class Meta:
         db_table = 'device'
-    
+
     def latest_location(self):
         return self.location_set.order_by('-created_on').first()
 
@@ -52,6 +53,6 @@ class Location(BaseModel):
     device = models.ForeignKey(Device, on_delete=models.CASCADE, db_index=True)
     latitude = models.FloatField()
     longitude = models.FloatField()
-    
+
     class Meta:
         db_table = 'location'

@@ -1,9 +1,11 @@
 import graphene
 from graphene_django.types import DjangoObjectType
-from django.contrib.auth.models import User
-from graphql import GraphQLError
-
 from .models import Device, Location
+
+
+class DeviceType(DjangoObjectType):
+    class Meta:
+        model = Device
 
 
 class LocationType(DjangoObjectType):
@@ -11,18 +13,56 @@ class LocationType(DjangoObjectType):
         model = Location
 
 
-class DeviceType(DjangoObjectType):
-    latest_location = graphene.Field(LocationType)
-    locations = graphene.List(LocationType) 
+class DeviceWithLocationsType(graphene.ObjectType):
+    device = graphene.Field(DeviceType)
+    locations = graphene.List(LocationType)
 
-    class Meta:
-        model = Device
 
-    def resolve_latest_location(self, info):
-        return self.latest_location()
-    
-    def resolve_locations(self, info):
-        return self.location_set.all()
+class DeviceWithLastLocationType(graphene.ObjectType):
+    device = graphene.Field(DeviceType)
+    last_location = graphene.Field(LocationType)
+
+
+class Query(graphene.ObjectType):
+    device = graphene.Field(DeviceType, id=graphene.Int(required=True))
+    all_devices = graphene.List(DeviceType)
+    get_device_locations = graphene.Field(
+        DeviceWithLocationsType,
+        id=graphene.ID(required=True)
+    )
+
+    all_devices_with_last_location = graphene.List(DeviceWithLastLocationType)
+
+    def resolve_device(self, info, id):
+        return Device.objects.get(pk=id)
+
+    def resolve_all_devices(self, info):
+        return Device.objects.filter(is_active=True)
+
+    def resolve_get_device_locations(self, info, id):
+        try:
+            device = Device.objects.get(pk=id)
+            return DeviceWithLocationsType(
+                device=device,
+                locations=device.location_set.filter(
+                    is_active=True).order_by('-created_on')
+            )
+        except Device.DoesNotExist:
+            return DeviceWithLocationsType(
+                device=None,
+                locations=[]
+            )
+
+    def resolve_all_devices_with_last_location(self, info):
+        devices = Device.objects.all()
+        result = []
+        for device in devices:
+            last_location = device.latest_location()
+            result.append({
+                'device': device,
+                'last_location': last_location
+            })
+        return result
 
 
 class CreateDevice(graphene.Mutation):
@@ -37,41 +77,36 @@ class CreateDevice(graphene.Mutation):
         return CreateDevice(device=device)
 
 
+class UpdateDevice(graphene.Mutation):
+    class Arguments:
+        id = graphene.Int(required=True)
+        name = graphene.String(required=True)
+
+    device = graphene.Field(DeviceType)
+
+    def mutate(self, info, id, name):
+        device = Device.objects.get(pk=id)
+        device.name = name
+        device.save()
+        return UpdateDevice(device=device)
+
+
+class DeleteDevice(graphene.Mutation):
+    class Arguments:
+        id = graphene.Int(required=True)
+
+    success = graphene.Boolean()
+
+    def mutate(self, info, id):
+        device = Device.objects.get(pk=id)
+        device.soft_delete()
+        return DeleteDevice(success=True)
+
+
 class Mutation(graphene.ObjectType):
     create_device = CreateDevice.Field()
-
-
-class Query(graphene.ObjectType):
-
-    all_devices = graphene.List(DeviceType)
-
-    device = graphene.Field(DeviceType, id=graphene.Int(required=True))
-    # cihaza bağlı konumlar
-    device_locations = graphene.List(LocationType, device_id=graphene.Int(required=True))
-
-
-    all_locations = graphene.List(LocationType)
-
-    location = graphene.Field(LocationType, id=graphene.Int(required=True))
-
-    def resolve_all_devices(root, info):
-        return Device.objects.all()
-
-    def resolve_device(root, info, id):
-        return Device.objects.get(pk=id)
-
-    def resolve_all_locations(root, info):
-        return Location.objects.all()
-
-    def resolve_location(root, info, id):
-        return Location.objects.get(pk=id)
-    
-    def resolve_device_locations(root, info, device_id):
-        try:
-            device = Device.objects.get(pk=device_id)
-            return device.location_set.order_by('-created_on')
-        except Device.DoesNotExist:
-            raise GraphQLError('Device not found')
+    update_device = UpdateDevice.Field()
+    delete_device = DeleteDevice.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
