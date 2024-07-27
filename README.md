@@ -151,7 +151,7 @@ query {
 }
 ```
 
-## Unit Test 
+## Run Test 
 
 ```
  python manage.py test
