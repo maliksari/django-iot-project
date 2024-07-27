@@ -89,7 +89,9 @@ docker run -p 8000:8000 django-iot-app
 ## API Testing
 You can test the following GraphQL queries and mutations:
 1. **Create Device:**
-```mutation {
+
+```
+mutation {
   createDevice(name: "New Device") {
     device {
       id
@@ -99,7 +101,8 @@ You can test the following GraphQL queries and mutations:
 }
 ```
 2. **Update Device:**
-```mutation {
+```
+mutation {
   updateDevice(id: 1, name: "Updated Device") {
     device {
       id
