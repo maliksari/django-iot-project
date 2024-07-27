@@ -119,7 +119,7 @@ mutation {
   }
 }
 ```
-4. ** Get Latest Location for Each Device:**
+4. **Get Latest Location for Each Device:**
 ```
 query {
   allDevicesWithLastLocation {
