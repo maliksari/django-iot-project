@@ -196,3 +196,21 @@ To test the application, run the client_test.py script located in the **`iot-tcp
 device_ids = [1, 3, 4, 6, 8, 9]  # Device IDs
 ```
 
+
+### Steps to Send Data
+
+1. **Open Telnet Connection:**
+
+   Start Telnet and connect to the TCP server running on `localhost` at port `9999`. Use the following command:
+
+```
+telnet localhost 9999
+```
+2. **Data format**
+```
+{device_id} {latitude} {longitude}
+```
+***Example***
+```
+1 37.7749 -122.4194
+```
