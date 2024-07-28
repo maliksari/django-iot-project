@@ -35,7 +35,7 @@ This project aims to develop an application for processing GPS location data fro
 
 - `git clone https://github.com/maliksari/drf-iot-project.git`
 
-- `cd drf-iot-project`
+- `cd django-iot-project`
 
 2.  **Set Up Python Virtual Environment:**
 
@@ -47,7 +47,7 @@ This project aims to develop an application for processing GPS location data fro
 - `pip install -r requirements.txt`
 
 ## Database Setup 
-After setting up PostgreSQL, create a `local_conf.py` file in the `drf-iot-project/common` directory with the following configuration. Adjust the database settings as per your environment:
+After setting up PostgreSQL, create a `local_conf.py` file in the `django-iot-project/common` directory with the following configuration. Adjust the database settings as per your environment:
 
 ```
 SECRET_KEY = 'django-secret-key'
